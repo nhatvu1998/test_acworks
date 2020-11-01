@@ -22,14 +22,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JWTPayload): Promise<UserSession> {
-    const user = await this.userService.findOne(payload.userId);
+    const user = await this.userService.findOneById(payload.userId);
     if (!user) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
     return {
       userId: user.id,
-      roles: payload.roles,
+      isAdmin: payload.isAdmin,
     };
   }
 }

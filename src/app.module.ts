@@ -5,6 +5,7 @@ import { ConfigModule } from './share/module/config/config.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeormConfigService } from './share/module/config/typeorm';
 import { JwtStrategy } from './feature/auth/strategy/jwt.strategy';
+import { CriteriaModule } from './feature/criteria/criteria.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { JwtStrategy } from './feature/auth/strategy/jwt.strategy';
     // }),
     AuthModule,
     UserModule,
+    CriteriaModule,
   ],
   providers: [JwtStrategy],
 })

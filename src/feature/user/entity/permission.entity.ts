@@ -12,14 +12,8 @@ export class PermissionEntity extends DefaultEntity {
 export enum PermissionScopes {
   ReadUser = 'read_user',
   WriteUser = 'write_user',
-  ReadProject = 'read_project',
-  WriteProject = 'write_project',
-  ReadEpic = 'read_epic',
-  WriteEpic = 'write_epic',
-  ReadIssue = 'read_issue',
-  WriteIssue = 'write_issue',
-  ReadSprint = 'read_sprint',
-  WriteSprint = 'write_sprint',
+  ReadCriteria = 'read_criteria',
+  WriteCriteria = 'write_criteria',
   ReadRole = 'read_role',
   WriteRole = 'write_role',
 }

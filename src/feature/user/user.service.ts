@@ -7,7 +7,7 @@ import { verify } from 'jsonwebtoken';
 import { genSalt, hash } from 'bcrypt';
 import { RegisterDto } from '../auth/dto/register.dto';
 import {ConfigService} from '../../share/module/config/config.service';
-import {RoleEntity, Roles} from "./entity/role.entity";
+import {RoleEntity, Roles} from './entity/role.entity';
 
 @Injectable()
 export class UserService {
@@ -19,7 +19,7 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  async getUserByIdOrFail(id: string) {
+  async getUserByIdOrFail(id: number) {
     try {
       return await this.userRepo.findOneOrFail(id);
     } catch (e) {
@@ -27,10 +27,25 @@ export class UserService {
     }
   }
 
-  async findOne(id: string) {
+  async getUsers(username: string = '', page: number = 1, limit: number = 20) {
     return this.userRepo
       .createQueryBuilder('u')
       .innerJoinAndSelect('u.roles', 'r')
+      .innerJoinAndSelect('r.permissions', 'p')
+      .where('u.username != :admin', {
+        admin: 'admin',
+      })
+      .andWhere('u.username LIKE :username', {username: `${username}%`})
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+  }
+
+  async findOneById(id: number) {
+    return this.userRepo
+      .createQueryBuilder('u')
+      .innerJoinAndSelect('u.roles', 'r')
+      .innerJoinAndSelect('r.permissions', 'p')
       .where('u.id = :userId', {
         userId: id,
       })
@@ -67,6 +82,8 @@ export class UserService {
       const guestRole = await this.roleRepo.findOne({ name: Roles.User });
       userRoles = guestRole ? [guestRole] : [];
     }
+
+    console.log(otherInfo);
     const user = new UserEntity({
       username,
       password: hashedPassword,
@@ -91,6 +108,14 @@ export class UserService {
     user.gender = updateInfo.gender ?? user.gender;
     user.fullname = updateInfo.fullname ?? user.fullname;
 
-    return this.userRepo.save(user)
+    return this.userRepo.save(user);
+  }
+
+  async deleteUser(userId: number) {
+    const user = await this.userRepo.findOne({ id: userId })
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return this.userRepo.remove(user);
   }
 }
