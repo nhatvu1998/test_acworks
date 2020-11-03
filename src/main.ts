@@ -10,6 +10,7 @@ import { LoggingInterceptor } from './share/interceptor/logging.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { description, version } from '../package.json';
+import { JwtAuthGuard } from './feature/auth/guard/jwt.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -19,33 +20,33 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  app.useLogger(
-    WinstonModule.createLogger({
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            nestWinstonModuleUtilities.format.nestLike(),
-          ),
-        }),
-        new winston.transports.File({
-          filename: `logs/Application.log`,
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.printf(
-              ({ timestamp, level, message, trace, context }) =>
-                `${timestamp};${level};${message}${trace ? `;${trace}` : ''}${
-                  context ? `;${JSON.stringify(context)}` : ''
-                }`,
-            ),
-          ),
-        }),
-      ],
-      level: configService.get('LOG_LEVEL'),
-    }),
-  );
+  // app.useLogger(
+  //   WinstonModule.createLogger({
+  //     transports: [
+  //       new winston.transports.Console({
+  //         format: winston.format.combine(
+  //           winston.format.timestamp(),
+  //           nestWinstonModuleUtilities.format.nestLike(),
+  //         ),
+  //       }),
+  //       new winston.transports.File({
+  //         filename: `logs/Application.log`,
+  //         format: winston.format.combine(
+  //           winston.format.timestamp(),
+  //           winston.format.printf(
+  //             ({ timestamp, level, message, trace, context }) =>
+  //               `${timestamp};${level};${message}${trace ? `;${trace}` : ''}${
+  //                 context ? `;${JSON.stringify(context)}` : ''
+  //               }`,
+  //           ),
+  //         ),
+  //       }),
+  //     ],
+  //     level: configService.get('LOG_LEVEL'),
+  //   }),
+  // );
 
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -54,6 +55,7 @@ async function bootstrap() {
   );
 
   app.useGlobalGuards(
+    new JwtAuthGuard(app.get(Reflector)),
     new RoleGuard(app.get(Reflector), app.get(UserService), app.get(AuthService)),
   );
   const docsOptions = new DocumentBuilder()

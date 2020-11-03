@@ -18,6 +18,15 @@ export class AuthService {
     private readonly userRepo: Repository<UserEntity>,
   ) {}
 
+  async getPermissionsByUserId(userId: number) {
+    return this.userRepo
+      .createQueryBuilder('u')
+      .innerJoinAndSelect('u.roles', 'r')
+      .innerJoinAndSelect('r.permissions', 'p')
+      .where('u.id = :userId', { userId })
+      .getOne();
+  }
+
   async createToken(username: string, password: string): Promise<any> {
     const user = await this.userService.findOneByName(username);
     console.log(user);

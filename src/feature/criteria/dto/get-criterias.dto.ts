@@ -1,10 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PagingQuery } from '../../../share/interface/paging.interface';
-import { IsOptional, IsString } from 'class-validator';
+import { IsISO8601, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class GetCriteriasQuery extends PagingQuery {
+export class GetUserCriteriasQuery {
   @ApiPropertyOptional()
-  @IsString()
   @IsOptional()
-  name: string;
+  startDate: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  endDate: Date;
 }

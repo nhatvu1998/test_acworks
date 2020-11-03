@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Put, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import {UserService} from './user.service';
+import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '../../share/decorator/user.decorator';
 import { UserEntity } from './entity/user.entity';
-import { UserSession } from '../../share/interface/session.interface';
 import { GetUserQuery } from './dto/get-users.dto';
+import { Scopes } from '../../share/decorator/scope.decorator';
+import { PermissionScopes } from './entity/permission.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -16,18 +16,21 @@ export class UserController {
   ) {}
 
   @Get('')
+  @Scopes(PermissionScopes.ReadUser)
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async getUsers(@Query() getUsersQuery: GetUserQuery) {
     return this.userService.getUsers(getUsersQuery.username, getUsersQuery.page, getUsersQuery.limit);
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: UserEntity, isArray: true })
+  @Scopes(PermissionScopes.ReadUser)
+  @ApiOkResponse({ type: UserEntity })
   async getUser(@Param('id') userId: number) {
     return this.userService.getUserByIdOrFail(userId);
   }
 
   @Put(':id')
+  @Scopes(PermissionScopes.WriteUser)
   async updateUser(@Body() updateUserBody: UpdateUserDto, @Param('id') userId: number) {
     return this.userService.updateUser(userId, {
       username: updateUserBody.username,
@@ -40,6 +43,7 @@ export class UserController {
   }
 
   @Delete(':id')
+  @Scopes(PermissionScopes.WriteUser)
   async remove(@Param('id') userId: number) {
     return this.userService.deleteUser(userId);
   }

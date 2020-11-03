@@ -1,17 +1,20 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LabelEntity, LabelType } from './entity/label.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
-import { CriteriaEntity } from './entity/criteria.entity';
+import { CriteriaEntity, CriteriaType } from './entity/criteria.entity';
+import { UserCriteriaEntity } from './entity/user-criteria.entity';
+import { UserEntity } from '../user/entity/user.entity';
 
 @Injectable()
 export class CriteriaService {
   constructor(
-    @InjectRepository(LabelEntity)
-    private readonly labelRepo: Repository<LabelEntity>,
     @InjectRepository(CriteriaEntity)
     private readonly criteriaRepo: Repository<CriteriaEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(UserCriteriaEntity)
+    private readonly userCriteriaRepo: Repository<UserCriteriaEntity>,
     private readonly userService: UserService,
   ) {}
 
@@ -23,101 +26,103 @@ export class CriteriaService {
     }
   }
 
-  async getLabels() {
-    return this.labelRepo.find({})
-  }
-
-  async getCriterias(name: string= '', limit: number = 20, page: number = 1) {
+  async findOneCriteriaById(id:number) {
     return this.criteriaRepo
-      .createQueryBuilder('u')
-      .innerJoinAndSelect('u.labels', 'r')
-      .andWhere('u.username LIKE :username', {username: `${name}%`})
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+      .createQueryBuilder('c')
+      .innerJoinAndSelect('c.labels', 'l')
+      .where('c.id = :id', { id })
+      .getOne()
   }
 
-  async createLabel(name: string, point: number, type: LabelType) {
-    const label = await this.labelRepo.findOne({ name });
+  async getUserCriterias( startDate: Date, endDate: Date, userId: number,) {
+    const a = await this.userRepo
+      .createQueryBuilder('u')
+      .innerJoinAndSelect('u.userCriterias', 'c')
+      .innerJoinAndSelect('c.criterias', 'l')
+      .where('u.id = :userId', { userId })
+      .andWhere('c.date >= :startDate', {startDate})
+      .andWhere('c.date <= :endDate', {endDate})
+      .select([
+        'u.id',
+        'u.fullname',
+        'c.date',
+        'c.criterias',
+        'l.point',
+        'l.name',
+        'l.type',
+      ])
+      .orderBy('c.date', 'ASC')
+      .getMany();
+    console.log(a);
+    return a
+  }
 
-    if (label) {
-      throw new BadRequestException('Label already exist');
+  async getManyUserCriterias( startDate: Date, endDate: Date) {
+    const users = await this.userRepo
+      .createQueryBuilder('u')
+      .innerJoinAndSelect('u.userCriterias', 'c')
+      .innerJoinAndSelect('c.criterias', 'l')
+      .where('c.date >= :startDate', {startDate})
+      .andWhere('c.date <= :endDate', {endDate})
+      .getMany();
+    const result = users.map(user => {
+      const totalPoint = user.userCriterias.reduce((total, ele) => (
+        ele?.criterias?.type === CriteriaType.Plus ? total + ele?.criterias?.point : total - ele?.criterias?.point
+      ), 0)
+      return {
+        ...user,
+        totalPoint,
+      }
+    })
+    return result.sort((a, b) => b.totalPoint - a.totalPoint)
+  }
+
+  async createCriteria(name: string, point: number, type: CriteriaType) {
+    const criteria = await this.criteriaRepo.findOne({ name });
+
+    if (criteria) {
+      throw new BadRequestException('Criteria already exist');
     }
 
-    return this.labelRepo.save(new LabelEntity({
+    return this.criteriaRepo.save(new CriteriaEntity({
       name,
       point,
       type,
     }));
   }
 
-  async updateLabel(
-    id: number,
-    name: string | null | undefined,
-    point: number | null | undefined,
-    type: LabelType | null | undefined,
-  ) {
-    const label = await this.labelRepo.findOne({ id });
-
-    if (!label) {
-      throw new BadRequestException('Label not found');
-    }
-    label.name = name ?? label.name;
-    label.point = point ?? label.point;
-    label.type = type ?? label.type;
-    return this.labelRepo.save(label);
-  }
-
-  async deleteLabel(id: number) {
-    const label = await this.labelRepo.findOne({ id });
-
-    if (!label) {
-      throw new BadRequestException('Label not found');
-    }
-    return this.labelRepo.remove(label);
-  }
-
-  async createCriteria(name: string, description: string, userId: number, labelIds: number[], date) {
-    const [user, labels] = await Promise.all([
-      this.userService.getUserByIdOrFail(userId),
-      this.labelRepo.findByIds(labelIds),
-    ])
-
-    const totalPoint = labels.reduce((total, label) => {
-      return (label.type === LabelType.Plus ) ? (total + label.point) : (total - label.point)
-    }, 0)
-    console.log(totalPoint);
-
-    return this.criteriaRepo.save(new CriteriaEntity({
-      name,
-      description,
-      date,
-      labels,
-      totalPoint
-    }))
-  }
-
   async updateCriteria(
     id: number,
     name: string | null | undefined,
-    description: string | null | undefined,
-    labelIds: number[],
-    date: Date | null | undefined,
+    point: number | null | undefined,
+    type: CriteriaType | null | undefined,
   ) {
-    const [criteria, labels] = await Promise.all([
-      this.getCriteriaByIdOrFail(id),
-      this.labelRepo.findByIds(labelIds)
-      ])
+    const criteria = await this.criteriaRepo.findOne({ id });
 
+    if (!criteria) {
+      throw new BadRequestException('Criteria not found');
+    }
     criteria.name = name ?? criteria.name;
-    criteria.description = description ?? criteria.description;
-    criteria.labels = labels ?? criteria.labels;
-    criteria.date = date ?? criteria.date;
+    criteria.point = point ?? criteria.point;
+    criteria.type = type ?? criteria.type;
     return this.criteriaRepo.save(criteria);
   }
 
   async deleteCriteria(id: number) {
     const criteria = await this.getCriteriaByIdOrFail(id);
     return this.criteriaRepo.remove(criteria);
+  }
+
+  async createUserCriteria(userId: number, criteriaIds: number[], date) {
+    const user = await this.userService.getUserByIdOrFail(userId);
+    if (criteriaIds) {
+      return criteriaIds.map(async criteriaId => {
+        await this.userCriteriaRepo.save(new UserCriteriaEntity({
+          userId,
+          criteriaId,
+          date
+        }))
+      })
+    }
   }
 }

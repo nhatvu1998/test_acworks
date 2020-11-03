@@ -3,14 +3,15 @@ import { CriteriaController } from './controller/criteria.controller';
 import { CriteriaService } from './criteria.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CriteriaEntity } from './entity/criteria.entity';
-import { LabelEntity } from './entity/label.entity';
 import { UserModule } from '../user/user.module';
-import { LabelController } from './controller/label.controller';
+import { UserCriteriaEntity } from './entity/user-criteria.entity';
+import { UserCriteriaController } from './controller/user-criteria.controller';
+import { UserEntity } from '../user/entity/user.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CriteriaEntity, LabelEntity]), UserModule],
-  controllers: [CriteriaController, LabelController],
+  imports: [TypeOrmModule.forFeature([CriteriaEntity, UserCriteriaEntity, UserEntity]), UserModule],
+  controllers: [CriteriaController, UserCriteriaController],
   providers: [CriteriaService]
 })
 export class CriteriaModule {}

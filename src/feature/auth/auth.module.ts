@@ -10,6 +10,10 @@ import {ConfigService} from '../../share/module/config/config.service';
 import {ConfigModule} from '../../share/module/config/config.module';
 import {PermissionEntity} from '../user/entity/permission.entity';
 import { RoleEntity } from '../user/entity/role.entity';
+import { JwtStrategy } from './strategy/jwt.strategy';
+import { JwtAuthGuard } from './guard/jwt.guard';
+import { RoleGuard } from './guard/role.guard';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -18,15 +22,18 @@ import { RoleEntity } from '../user/entity/role.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get('JWT_EXPIRES'),
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        return ({
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: configService.get('JWT_EXPIRES'),
+          },
+        })
+      }
     }),
+    UserModule,
   ],
-  providers: [AuthService, UserService],
+  providers: [AuthService, JwtStrategy, RoleGuard, JwtAuthGuard],
   controllers: [AuthController],
 })
 export class AuthModule {}

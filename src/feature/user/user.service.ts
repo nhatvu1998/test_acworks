@@ -5,7 +5,6 @@ import { UserEntity } from './entity/user.entity';
 import { UserSession } from 'src/share/interface/session.interface';
 import { verify } from 'jsonwebtoken';
 import { genSalt, hash } from 'bcrypt';
-import { RegisterDto } from '../auth/dto/register.dto';
 import {ConfigService} from '../../share/module/config/config.service';
 import {RoleEntity, Roles} from './entity/role.entity';
 
@@ -49,7 +48,7 @@ export class UserService {
       .where('u.id = :userId', {
         userId: id,
       })
-      .getOne();
+      .getOne()
   }
 
   async findOneByName(username: string) {

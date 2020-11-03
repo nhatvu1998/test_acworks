@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserService } from 'src/feature/user/user.service';
 import { AuthService } from '../auth.service';
+import { UserSession } from '../../../share/interface/session.interface';
+import { FatalError } from 'tslint/lib/error';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -14,23 +16,27 @@ export class RoleGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const scopes = this.reflector.get<string[]>('scopes', context.getHandler());
-    if (!scopes || scopes.length === 0) {
-      return true;
+    const requiredScopes = this.reflector.get<string[]>('scopes', context.getHandler());
+    // if no @Roles decorator applied then @RoleGuard can activate
+    if (!requiredScopes || requiredScopes.length === 0) return true;
+
+    const isPublic = this.reflector.get<string[]>('isPublic', context.getHandler());
+    if (isPublic) {
+      throw new FatalError('Scopes and Public decorator cannot exist in the same route handler');
     }
-    try {
-      // const gqlCtx = GqlExecutionContext.create(context);
-      // const { authorization } = gqlCtx.getContext().req.headers;
-      // if (!authorization) { return false; }
-      // const res = await this.userService.decodeToken(authorization);
-      return true;
-      // const userScopes = (await this.authService.getPermissionsByUserId(
-      //   res.userId,
-      // ))?.map(p => p.scope);
-      // gqlCtx.getContext().user = { userId: res.userId };
-      // return scopes.every(scope => userScopes?.includes(scope));
-    } catch (err) {
-      return false;
-    }
+
+    // if no @AuthGuard is applied then @RoleGuard alone cant activate
+    const request = context.switchToHttp().getRequest();
+
+    if (!request.user) return false;
+
+    const session: UserSession = request.user;
+
+    const userScopes = (await this.authService.getPermissionsByUserId(session.userId))?.roles.reduce(
+      (scopes: string[], role) => [...scopes, ...role.permissions.map(p => p.scope)],
+      [],
+    );
+
+    return requiredScopes.every(scope => userScopes?.includes(scope));
   }
 }

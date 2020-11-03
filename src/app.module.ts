@@ -19,7 +19,6 @@ import { CriteriaModule } from './feature/criteria/criteria.module';
     AuthModule,
     UserModule,
     CriteriaModule,
-  ],
-  providers: [JwtStrategy],
+  ]
 })
 export class AppModule {}
