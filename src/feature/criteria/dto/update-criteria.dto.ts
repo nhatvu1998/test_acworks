@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsInt, IsISO8601, IsNumber, IsOptional, IsString } from 'class-validator';
-import { CriteriaType } from '../entity/criteria.entity';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { PointType } from '../entity/criteria.entity';
 
 export class UpdateCriteriaBody {
   @ApiPropertyOptional()
@@ -16,5 +16,5 @@ export class UpdateCriteriaBody {
   @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
-  type: CriteriaType | null;
+  type: PointType | null;
 }

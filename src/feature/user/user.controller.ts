@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +10,6 @@ import { PermissionScopes } from './entity/permission.entity';
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-  private readonly logger = new Logger(UserController.name);
   constructor(
     private readonly userService: UserService,
   ) {}

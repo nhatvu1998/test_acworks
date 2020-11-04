@@ -20,33 +20,33 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  // app.useLogger(
-  //   WinstonModule.createLogger({
-  //     transports: [
-  //       new winston.transports.Console({
-  //         format: winston.format.combine(
-  //           winston.format.timestamp(),
-  //           nestWinstonModuleUtilities.format.nestLike(),
-  //         ),
-  //       }),
-  //       new winston.transports.File({
-  //         filename: `logs/Application.log`,
-  //         format: winston.format.combine(
-  //           winston.format.timestamp(),
-  //           winston.format.printf(
-  //             ({ timestamp, level, message, trace, context }) =>
-  //               `${timestamp};${level};${message}${trace ? `;${trace}` : ''}${
-  //                 context ? `;${JSON.stringify(context)}` : ''
-  //               }`,
-  //           ),
-  //         ),
-  //       }),
-  //     ],
-  //     level: configService.get('LOG_LEVEL'),
-  //   }),
-  // );
+  app.useLogger(
+    WinstonModule.createLogger({
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            nestWinstonModuleUtilities.format.nestLike(),
+          ),
+        }),
+        new winston.transports.File({
+          filename: `logs/Application.log`,
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.printf(
+              ({ timestamp, level, message, trace, context }) =>
+                `${timestamp};${level};${message}${trace ? `;${trace}` : ''}${
+                  context ? `;${JSON.stringify(context)}` : ''
+                }`,
+            ),
+          ),
+        }),
+      ],
+      level: configService.get('LOG_LEVEL'),
+    }),
+  );
 
-  // app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
-import { CriteriaType } from '../entity/criteria.entity';
+import { PointType } from '../entity/criteria.entity';
 
 export class CreateCriteriaDto {
   @ApiProperty()
@@ -13,5 +13,5 @@ export class CreateCriteriaDto {
 
   @ApiProperty()
   @IsNumber()
-  type: CriteriaType;
+  type: PointType;
 }

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
-import { CriteriaEntity, CriteriaType } from './entity/criteria.entity';
+import { CriteriaEntity, PointType } from './entity/criteria.entity';
 import { UserCriteriaEntity } from './entity/user-criteria.entity';
 import { UserEntity } from '../user/entity/user.entity';
 
@@ -26,16 +26,21 @@ export class CriteriaService {
     }
   }
 
-  async findOneCriteriaById(id:number) {
+  async getManyCriteria(name:string = '', page, limit) {
     return this.criteriaRepo
       .createQueryBuilder('c')
-      .innerJoinAndSelect('c.labels', 'l')
-      .where('c.id = :id', { id })
-      .getOne()
+      .where('c.name LIKE :username', {username: `${name}%`})
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+  }
+
+  async findOneCriteriaById(id:number) {
+    return this.criteriaRepo.findOneOrFail({id})
   }
 
   async getUserCriterias( startDate: Date, endDate: Date, userId: number,) {
-    const a = await this.userRepo
+    return this.userRepo
       .createQueryBuilder('u')
       .innerJoinAndSelect('u.userCriterias', 'c')
       .innerJoinAndSelect('c.criterias', 'l')
@@ -51,10 +56,8 @@ export class CriteriaService {
         'l.name',
         'l.type',
       ])
-      .orderBy('c.date', 'ASC')
+      .orderBy('c.date', 'DESC')
       .getMany();
-    console.log(a);
-    return a
   }
 
   async getManyUserCriterias( startDate: Date, endDate: Date) {
@@ -67,7 +70,7 @@ export class CriteriaService {
       .getMany();
     const result = users.map(user => {
       const totalPoint = user.userCriterias.reduce((total, ele) => (
-        ele?.criterias?.type === CriteriaType.Plus ? total + ele?.criterias?.point : total - ele?.criterias?.point
+        ele?.criterias?.type === PointType.Plus ? total + ele?.criterias?.point : total - ele?.criterias?.point
       ), 0)
       return {
         ...user,
@@ -77,7 +80,7 @@ export class CriteriaService {
     return result.sort((a, b) => b.totalPoint - a.totalPoint)
   }
 
-  async createCriteria(name: string, point: number, type: CriteriaType) {
+  async createCriteria(name: string, point: number, type: PointType) {
     const criteria = await this.criteriaRepo.findOne({ name });
 
     if (criteria) {
@@ -95,7 +98,7 @@ export class CriteriaService {
     id: number,
     name: string | null | undefined,
     point: number | null | undefined,
-    type: CriteriaType | null | undefined,
+    type: PointType | null | undefined,
   ) {
     const criteria = await this.criteriaRepo.findOne({ id });
 
@@ -114,7 +117,7 @@ export class CriteriaService {
   }
 
   async createUserCriteria(userId: number, criteriaIds: number[], date) {
-    const user = await this.userService.getUserByIdOrFail(userId);
+    await this.userService.getUserByIdOrFail(userId);
     if (criteriaIds) {
       return criteriaIds.map(async criteriaId => {
         await this.userCriteriaRepo.save(new UserCriteriaEntity({

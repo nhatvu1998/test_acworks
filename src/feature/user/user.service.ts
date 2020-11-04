@@ -82,7 +82,6 @@ export class UserService {
       userRoles = guestRole ? [guestRole] : [];
     }
 
-    console.log(otherInfo);
     const user = new UserEntity({
       username,
       password: hashedPassword,

@@ -1,18 +1,12 @@
 import {
   Entity,
-  Column,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
   PrimaryColumn, JoinColumn,
 } from 'typeorm';
 import { ApiProperty} from '@nestjs/swagger';
 import { CriteriaEntity } from './criteria.entity';
 import { Expose, plainToClass } from 'class-transformer';
 import { UserEntity } from '../../user/entity/user.entity';
-import { DefaultEntity } from '../../../share/interface/default.entity';
 
 @Entity('user_criteria')
 export class UserCriteriaEntity {

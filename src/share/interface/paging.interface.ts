@@ -13,5 +13,5 @@ export class PagingQuery {
   @Transform(value => Number(value))
   @IsInt()
   @Min(1)
-  limit: number = 20;
+  limit: number = 50;
 }

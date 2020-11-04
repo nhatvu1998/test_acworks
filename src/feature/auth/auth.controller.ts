@@ -15,8 +15,8 @@ export class AuthController {
   }
 
   @Post('login')
-  @HttpCode(200)
   @Public()
+  @HttpCode(200)
   @ApiOkResponse({type: AccessTokenDto})
   async login(@Body() loginData: LoginDto) {
     return this.authService.createToken(

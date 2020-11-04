@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsInt, IsISO8601, IsNumber, IsString } from 'class-validator';
+import { ArrayNotEmpty, IsInt, IsISO8601, IsNumber } from 'class-validator';
 
 export class CreateUserCriteriaDto {
   @ApiProperty()

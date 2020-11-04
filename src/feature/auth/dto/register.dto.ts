@@ -1,4 +1,4 @@
-import { IsEmail, IsNumber, IsOptional, IsString, Length, Matches } from 'class-validator';
+import { IsEmail, IsNumber, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import {UserGender} from '../../user/entity/user.entity';
 

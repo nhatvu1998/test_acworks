@@ -1,18 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { Public } from '../../../share/decorator/public.decorator';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { UserEntity } from '../../user/entity/user.entity';
-import { RegisterDto } from '../../auth/dto/register.dto';
 import { CriteriaService } from '../criteria.service';
 import { CriteriaEntity } from '../entity/criteria.entity';
-import { CreateCriteriaDto } from '../dto/create-criteria.dto';
-import { UpdateCriteriaBody } from '../dto/update-criteria.dto';
 import { User } from '../../../share/decorator/user.decorator';
 import { UserSession } from '../../../share/interface/session.interface';
 import { Scopes } from '../../../share/decorator/scope.decorator';
 import { PermissionScopes } from '../../user/entity/permission.entity';
 import { CreateUserCriteriaDto } from '../dto/create-user-criteria.dto';
-import { GetUserCriteriasQuery } from '../dto/get-criterias.dto';
+import { GetUserCriteriasQuery } from '../dto/get-user-criterias.dto';
 
 @ApiTags('userCriteria')
 @Controller('userCriteria')
@@ -21,6 +16,13 @@ export class UserCriteriaController {
   }
 
   @Get('')
+  @Scopes(PermissionScopes.ReadCriteria)
+  @ApiOkResponse({type: [CriteriaEntity]})
+  async getManyCriterias(@Query() {startDate, endDate}: GetUserCriteriasQuery, @User() user: UserSession) {
+    return this.criteriaService.getManyUserCriterias(startDate, endDate);
+  }
+
+  @Get('detail')
   @Scopes(PermissionScopes.ReadCriteria)
   @ApiOkResponse({type: [CriteriaEntity]})
   async getManyUserCriterias(@Query() {startDate, endDate}: GetUserCriteriasQuery, @User() user: UserSession) {

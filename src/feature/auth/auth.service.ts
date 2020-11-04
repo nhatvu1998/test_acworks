@@ -5,8 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../user/entity/user.entity';
 import { Repository } from 'typeorm';
-import { LoginDto } from './dto/login.dto';
-import {ConfigService} from "../../share/module/config/config.service";
+import {ConfigService} from '../../share/module/config/config.service';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +28,6 @@ export class AuthService {
 
   async createToken(username: string, password: string): Promise<any> {
     const user = await this.userService.findOneByName(username);
-    console.log(user);
     if (!user) throw new UnauthorizedException('Invalid username or password');
     const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid) {

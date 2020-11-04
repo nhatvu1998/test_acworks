@@ -1,9 +1,8 @@
-import { Entity, Column, JoinTable, ManyToMany, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { DefaultEntity } from '../../../share/interface/default.entity';
-import { Exclude, Expose, plainToClass } from 'class-transformer';
+import { Expose, plainToClass } from 'class-transformer';
 import { ApiProperty} from '@nestjs/swagger';
 import {RoleEntity} from './role.entity';
-import { CriteriaEntity } from '../../criteria/entity/criteria.entity';
 import { UserCriteriaEntity } from '../../criteria/entity/user-criteria.entity';
 
 @Entity('user')
@@ -20,7 +19,7 @@ export class UserEntity extends DefaultEntity {
 
   @ApiProperty()
   @Expose()
-  @Column({select: false})
+  @Column()
   password: string;
 
   @ApiProperty()

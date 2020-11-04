@@ -1,7 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserService } from 'src/feature/user/user.service';
 import { AuthService } from '../auth.service';
 import { UserSession } from '../../../share/interface/session.interface';
