@@ -15,12 +15,12 @@ export class UserEntity extends DefaultEntity {
   @ApiProperty()
   @Expose()
   @Column()
-  fullname?: string;
+  password: string;
 
   @ApiProperty()
   @Expose()
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  fullname?: string;
 
   @ApiProperty()
   @Expose()
@@ -45,7 +45,11 @@ export class UserEntity extends DefaultEntity {
 
   @ApiProperty({ type: () => UserCriteriaEntity })
   @Expose()
-  @OneToMany(() => UserCriteriaEntity, usercriteria => usercriteria.users)
+  @OneToMany(
+    () => UserCriteriaEntity,
+      usercriteria => usercriteria.users,
+    { onDelete: 'CASCADE' }
+    )
   userCriterias: UserCriteriaEntity[];
 
   constructor(user: Partial<UserEntity>) {

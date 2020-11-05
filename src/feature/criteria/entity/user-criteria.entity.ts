@@ -22,7 +22,11 @@ export class UserCriteriaEntity {
 
   @ApiProperty({ type: () => UserEntity })
   @Expose()
-  @ManyToOne(() => UserEntity, user => user.userCriterias)
+  @ManyToOne(
+    () => UserEntity,
+      user => user.userCriterias,
+    { onDelete: 'CASCADE' }
+    )
   @JoinColumn({ name: 'user_id' })
   users: UserEntity;
 
@@ -33,7 +37,11 @@ export class UserCriteriaEntity {
 
   @ApiProperty({ type: () => CriteriaEntity })
   @Expose()
-  @ManyToOne(() => CriteriaEntity, criteria => criteria.userCriterias)
+  @ManyToOne(
+    () => CriteriaEntity,
+      criteria => criteria.userCriterias,
+    { onDelete: 'CASCADE' }
+  )
   @JoinColumn({ name: 'criteria_id' })
   criterias: CriteriaEntity;
 

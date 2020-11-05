@@ -7,6 +7,7 @@ import { verify } from 'jsonwebtoken';
 import { genSalt, hash } from 'bcrypt';
 import {ConfigService} from '../../share/module/config/config.service';
 import {RoleEntity, Roles} from './entity/role.entity';
+import { PermissionEntity, PermissionScopes } from './entity/permission.entity';
 
 @Injectable()
 export class UserService {
@@ -15,8 +16,16 @@ export class UserService {
     private readonly userRepo: Repository<UserEntity>,
     @InjectRepository(RoleEntity)
     private readonly roleRepo: Repository<RoleEntity>,
+    @InjectRepository(PermissionEntity)
+    private readonly permissionRepo: Repository<PermissionEntity>,
     private readonly configService: ConfigService,
   ) {}
+
+  async onApplicationBootstrap() {
+    await this.initRoles();
+    await this.initAdmin();
+    await this.initUsers();
+  }
 
   async getUserByIdOrFail(id: number) {
     try {
@@ -115,5 +124,66 @@ export class UserService {
       throw new BadRequestException('User not found');
     }
     return this.userRepo.remove(user);
+  }
+
+  private async initAdmin() {
+    const adminUsername = this.configService.get('ADMIN_USERNAME');
+    const adminPassword = this.configService.get('ADMIN_PASSWORD');
+
+    const user = await this.findOneByName(adminUsername);
+
+    if (!user) {
+      return this.createUser(adminUsername, adminPassword, undefined, true);
+    }
+  }
+
+  private async initUsers() {
+    for(let i= 1; i <= 10; i++) {
+     const user = await this.findOneByName(`user${i}`);
+     if (!user) {
+       await this.createUser(`user${i}`, '123', {
+         fullname: `user ${i}`,
+         email: `user${i}@gmail.com`,
+         age: Math.floor(Math.random() * 50) + 1,
+         gender: Math.floor(Math.random() * 2)
+       }, false);
+     }
+   }
+  }
+
+  private async initRoles() {
+    let permissionList
+    if (!(await this.permissionRepo.findOne())) {
+      permissionList = Object.values(PermissionScopes).map(async value => {
+          const permission = new PermissionEntity();
+          permission.scope = value;
+          return await this.permissionRepo.save(permission);
+        })
+      await Promise.all(permissionList)
+    }
+    if (!(await this.roleRepo.findOne())) {
+      const userPermission = (
+        await Promise.all([
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadUser } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadRole } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadCriteria } }),
+        ])
+      ).filter((permission): permission is Required<PermissionEntity> => permission !== undefined);
+
+      const adminPermission = (
+        await Promise.all([
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadUser } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.WriteUser } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadRole } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.WriteRole } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.ReadCriteria } }),
+          this.permissionRepo.findOne({ where: { scope: PermissionScopes.WriteCriteria } }),
+        ])
+      ).filter((permission): permission is Required<PermissionEntity> => permission !== undefined);
+      await Promise.all([
+        this.roleRepo.save({ name: Roles.Admin, permissions: adminPermission }),
+        this.roleRepo.save({ name: Roles.User, permissions: userPermission }),
+      ]);
+    }
   }
 }

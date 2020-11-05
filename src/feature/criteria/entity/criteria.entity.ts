@@ -22,7 +22,11 @@ export class CriteriaEntity extends DefaultEntity {
   type: PointType;
 
   @ApiProperty({ type: () => UserCriteriaEntity })
-  @OneToMany(() => UserCriteriaEntity, usercriteria => usercriteria.criterias)
+  @OneToMany(
+    () => UserCriteriaEntity,
+      usercriteria => usercriteria.criterias,
+    { onDelete: 'CASCADE' },
+    )
   userCriterias: UserCriteriaEntity[];
 
 

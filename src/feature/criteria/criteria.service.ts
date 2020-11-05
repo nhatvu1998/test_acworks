@@ -39,7 +39,8 @@ export class CriteriaService {
     return this.criteriaRepo.findOneOrFail({id})
   }
 
-  async getUserCriterias( startDate: Date, endDate: Date, userId: number,) {
+  async getUserCriterias( startDate: Date, endDate: Date, userId: number) {
+    console.log(startDate, endDate, userId);
     return this.userRepo
       .createQueryBuilder('u')
       .innerJoinAndSelect('u.userCriterias', 'c')
@@ -56,7 +57,7 @@ export class CriteriaService {
         'l.name',
         'l.type',
       ])
-      .orderBy('c.date', 'DESC')
+      // .orderBy('c.date', 'DESC')
       .getMany();
   }
 

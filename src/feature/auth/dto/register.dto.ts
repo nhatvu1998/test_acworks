@@ -1,29 +1,35 @@
-import { IsEmail, IsNumber, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {UserGender} from '../../user/entity/user.entity';
 
 export class RegisterDto {
-  @IsString()
   @ApiProperty()
+  @IsString()
+  @IsOptional()
   username: string
 
-  @IsString()
   @ApiProperty()
+  @IsString()
+  @IsOptional()
   password: string
 
+  @ApiPropertyOptional()
   @IsString()
-  @ApiProperty()
+  @IsOptional()
   fullname?: string
 
+  @ApiPropertyOptional()
   @IsEmail()
-  @ApiProperty()
+  @IsOptional()
   email?: string
 
+  @ApiPropertyOptional()
   @IsNumber()
-  @ApiProperty()
+  @IsOptional()
   age?: number
 
+  @ApiPropertyOptional()
   @IsNumber()
-  @ApiProperty()
+  @IsOptional()
   gender?: UserGender
 }
